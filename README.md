@@ -135,7 +135,7 @@ usage: experiments.py [-h] [--reg REG] [--seed SEED] [--test TEST] [--dir DIR]
                       [--epsilon EPSILON] function dataset model
 
 positional arguments:
-  function              CP function to run (CP function to run (full_CP, ACP_D, ordinary_full_CP, ACP_O, SCP, RAPS, APS, CV_plus, JK_plus)
+  function              CP function to run (full_CP, ACP_D, ordinary_full_CP, ACP_O, SCP, RAPS, APS, CV_plus, JK_plus)
   dataset               dataset (synthetic, MNIST, US_Census, CIFAR-10)
   model                 Neural Network A, B, C, LR or CNN
 
@@ -154,7 +154,7 @@ optional arguments:
 
 ## Reference
 
-Javier Abad, Umang Bhatt, Adrian Weller and Giovanni Cherubin. 
+Abad J., Bhatt U., Weller A. and Cherubin G.. 
 “Approximating Full Conformal Prediction at Scale via Influence Functions.” 2022.
 
  BiBTeX:
