@@ -1,0 +1,10 @@
+numpy
+pytorch
+pandas
+scikit-learn
+tqdm
+scipy
+
+matplotlib
+tensorflow
+folktables
