@@ -109,8 +109,8 @@ The first argument, `<function>`, specifies the CP function. It should be one of
 * `SCP`: Split Conformal Prediction;
 * `RAPS`: Regularized Adaptive Prediction Sets [(Angelopoulos et al.)](https://arxiv.org/abs/2009.14193);
 * `APS`:  Adaptive Prediction Sets [(Romano et al.)](https://arxiv.org/abs/2006.02544);
-* `CV_plus`:  cross-validation+ [(Romano et al.)](https://arxiv.org/abs/2006.02544);
-* `JK_plus`: jackknife+ [(Romano et al.)](https://arxiv.org/abs/2006.02544).
+* `CV_plus`:  Cross-validation+ [(Romano et al.)](https://arxiv.org/abs/2006.02544);
+* `JK_plus`: Jackknife+ [(Romano et al.)](https://arxiv.org/abs/2006.02544).
 
 The second argument, `<dataset>`, specifies the dataset. It should be one of the following:
 
@@ -154,7 +154,7 @@ optional arguments:
 
 ## Reference
 
-Abad J., Bhatt U., Weller A. and Cherubin G.. 
+Abad J., Bhatt U., Weller A. and Cherubin G. 
 “Approximating Full Conformal Prediction at Scale via Influence Functions.” 2022.
 
  BiBTeX:
