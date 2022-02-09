@@ -98,7 +98,8 @@ For a tutorial on how to use ACP and how to create the plots in the paper, see t
 
 ## Experiments
 
-To easily run experiments with ACP and the comparing methods, use `python experiments.py <function> <dataset> <model>`
+To easily run experiments with ACP and the comparing methods, use `python3 experiments.py <function> <dataset> <model>`.
+
 The first argument, `<function>`, specifies the CP function. It should be one of the following:
  
 * `full_CP`: full Conformal Prediction with the deleted scheme;
