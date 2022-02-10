@@ -85,8 +85,8 @@ You might need to tweak your model to make it compatible with the ACP wrapper. S
 Once you instantiate your model, wrap ACP around it. Now you can generate tight prediction sets with validity guarantees.
 
 ```bash
-CP = CP_IF(Xtrain, Ytrain, model, seed = SEED, verbose = True)
-sets = CP.predict(Xtest, epsilon, out_file = "results/test")
+ACP = ACP_D(Xtrain, Ytrain, model, seed = SEED, verbose = True)
+sets = ACP.predict(Xtest, epsilon, out_file = "results/test")
 ```
 The file `ACP_Tutorial.ipynb` contains a short tutorial that allows you to explore ACP with synthetic data.
 
