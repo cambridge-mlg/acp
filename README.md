@@ -14,7 +14,7 @@ This repository contains the Python implementation of [Approximating Full Confor
 
 ![alt text](https://github.com/cambridge-mlg/acp/blob/1e0b41a45f7dfe0ad1f02235688a58daa0269c92/ACP.JPG)
 
-Approximate full Conformal Prediction (ACP) outputs a prediction set that provably contains the true label with at least a probability specified by the practicioner. In large datasets, ACP inherits the statistical power of full Conformal Prediction, yielding tight prediction sets with finite-sample validity guarantees. The method works as a wrapper for any differentiable ML model.
+Approximate full Conformal Prediction (ACP) outputs a prediction set that provably contains the true label with at least a probability specified by the practicioner. In large datasets, ACP inherits the statistical power of full Conformal Prediction, yielding tight prediction sets with validity guarantees. The method works as a wrapper for any differentiable ML model.
 
 ## Contents
 
