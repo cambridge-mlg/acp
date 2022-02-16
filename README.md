@@ -46,6 +46,7 @@ We include the following third-party packages for comparison with ACP:
 * torch
 * tqdm
 * copy
+* pandas
 
 For `experiments.py` and `ACP_Tutorial.ipynb`:
 
@@ -53,7 +54,6 @@ For `experiments.py` and `ACP_Tutorial.ipynb`:
 * tensorflow
 * folktables
 * scikit-learn
-* pandas
 
 ### Installation
 
