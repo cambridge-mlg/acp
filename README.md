@@ -43,7 +43,7 @@ We include the following third-party packages for comparison with ACP:
 
 * python 3.6 or higher
 * numpy
-* pytorch
+* torch
 * pandas
 * scikit-learn
 * tqdm
