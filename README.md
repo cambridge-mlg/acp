@@ -45,7 +45,6 @@ We include the following third-party packages for comparison with ACP:
 * numpy
 * torch
 * tqdm
-* copy
 * pandas
 
 For `experiments.py` and `ACP_Tutorial.ipynb`:
