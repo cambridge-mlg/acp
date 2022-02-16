@@ -44,16 +44,16 @@ We include the following third-party packages for comparison with ACP:
 * python 3.6 or higher
 * numpy
 * torch
-* pandas
-* scikit-learn
 * tqdm
-* scipy
+* copy
 
 For `experiments.py` and `ACP_Tutorial.ipynb`:
 
 * matplotlib
 * tensorflow
 * folktables
+* scikit-learn
+* pandas
 
 ### Installation
 
