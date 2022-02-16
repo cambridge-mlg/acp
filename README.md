@@ -23,7 +23,7 @@ This repository is organized as follows:
  - `methods.py` Python implementation of the ACP algorithms.
  - `others.py` Python implementation of the comparing methods (SCP, APS, RAPS, CV+, JK+).
  - `wrapper.py` Python implementation of ACP as a wrapper for any differentiable ML model. See models.py for examples.
- - `models.py` Examples of models compatible with wrapper.py. 
+ - `models.py` Examples of models compatible with wrapper.py (e.g., logistic regression, neural network, convolutional neural network).
  - `experiments.py` Python file to run the experiments from the command line.
  - `third_party/` Additional third-party software for comparison with other methods.
  - `models/` Saved models.
