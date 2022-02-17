@@ -55,14 +55,23 @@ For `experiments.py` and `ACP_Tutorial.ipynb`:
 * scikit-learn
 
 ### Installation
+ACP can be used as a fully-independent `pip` package. You can download the framework by running the following command in the terminal:
 
-First of all, clone and access the repository:
+```bash
+pip install acp-package
+```
+In order to use ACP in your own models, just include the following imports in your file:
+
+```bash
+from acp.methods import ACP_D #Deleted scheme, import ACP_O for the ordinary scheme
+```
+Altenatively, you can clone this repo by running:
 
 ```bash
 git clone https://github.com/cambridge-mlg/acp
 cd acp
 ```
-Now create a virtual environment and install the requirements:
+And use ACP in a customized virtual environment:
 
 ```bash
 virtualenv -p python3 venv
@@ -70,18 +79,16 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
-### Constructing valid prediction sets
-
-To use ACP in your own models, please include the following imports in your file:
+Now, just include the imports:
 
 ```bash
 from wrapper import *
 from utils import *
 ```
-You might need to tweak your model to make it compatible with the ACP wrapper. See models.py for examples with neural networks, logistic regression, and convolutional neural networks. 
 
-Once you instantiate your model, wrap ACP around it. Now you can generate tight prediction sets with validity guarantees.
+### Constructing valid prediction sets
+
+ACP works as a wrapper for any PyTorch model with `.fit()` and `.predict()` methods. Once you instantiate your model, you can generate tight prediction sets with validity guarantees.
 
 ```bash
 ACP = ACP_D(Xtrain, Ytrain, model, seed = SEED, verbose = True)
