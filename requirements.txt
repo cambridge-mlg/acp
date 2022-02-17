@@ -1,10 +1,10 @@
 numpy
-pytorch
+torch
 pandas
-scikit-learn
 tqdm
-scipy
 
 matplotlib
 tensorflow
 folktables
+scipy
+scikit-learn
