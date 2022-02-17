@@ -55,7 +55,7 @@ For `experiments.py` and `ACP_Tutorial.ipynb`:
 * scikit-learn
 
 ### Installation
-ACP can be used as a fully-independent `pip` package. You can download the framework by running the following command in the terminal:
+ACP can be utilized as a fully-independent `pip` package. You can download the framework by running the following command in the terminal:
 
 ```bash
 pip install acp-package
