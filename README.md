@@ -65,7 +65,7 @@ In order to use ACP in your own models, just include the following imports in yo
 ```bash
 from acp.methods import ACP_D #Deleted scheme, import ACP_O for the ordinary scheme
 ```
-Altenatively, you can clone this repo by running:
+Alternatively, you can clone this repo by running:
 
 ```bash
 git clone https://github.com/cambridge-mlg/acp
