@@ -14,7 +14,7 @@ This repository contains the Python implementation of [Approximating Full Confor
 
 ![alt text](https://github.com/cambridge-mlg/acp/blob/1e0b41a45f7dfe0ad1f02235688a58daa0269c92/ACP.JPG)
 
-Approximate full Conformal Prediction (ACP) outputs a prediction set that provably contains the true label with at least a probability specified by the practicioner. In large datasets, ACP inherits the statistical power of full Conformal Prediction, yielding tight prediction sets with validity guarantees. The method works as a wrapper for any differentiable ML model.
+Approximate full Conformal Prediction (ACP) outputs a prediction set that contains the true label with at least a probability specified by the practicioner. In large datasets, ACP inherits the statistical power of the highly efficient full Conformal Prediction. The method works as a wrapper for any differentiable ML model.
 
 ## Contents
 
@@ -88,7 +88,7 @@ from utils import *
 
 ### Constructing valid prediction sets
 
-ACP works as a wrapper for any PyTorch model with `.fit()` and `.predict()` methods. Once you instantiate your model, you can generate tight prediction sets with validity guarantees.
+ACP works as a wrapper for any PyTorch model with `.fit()` and `.predict()` methods. Once you instantiate your model, you can generate tight prediction sets that contain the true label with a specified probability.
 
 ```bash
 ACP = ACP_D(Xtrain, Ytrain, model, seed = SEED, verbose = True)
@@ -100,7 +100,7 @@ The file `ACP_Tutorial.ipynb` contains a short tutorial that allows you to explo
 
 For a tutorial on how to use ACP and how to create the plots in the paper, see the following notebook:
 
-* [Constructing valid prediction sets with ACP](https://github.com/cambridge-mlg/acp/blob/master/ACP_Tutorial.ipynb)
+* [Constructing prediction sets with ACP](https://github.com/cambridge-mlg/acp/blob/master/ACP_Tutorial.ipynb)
 
 ## Experiments
 
