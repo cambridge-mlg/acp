@@ -1,70 +1,135 @@
-from utils import *
-from models import *
-import copy
-import numpy as np
-import torch 
+"""Author: Javier Abad Martinez"""
+
 import random
-from tqdm import tqdm
+from typing import Dict, Optional, Sequence
+
+import numpy as np
+import torch
+from torch import Tensor
 from torch.autograd import grad
+from torch.nn import CrossEntropyLoss
+from tqdm import tqdm
+
+from models import NeuralNetworkTemplate
+from utils import check_tensor, flatten_gradient, log_to_file
+
+# pylint: disable=no-member
+# no error
+
+device = torch.device("cuda")
+
 
 class ACP:
-    def __init__(self, Xtrain, Ytrain, model, seed = 42, verbose = False, batches = 1, damp = 0.001):
-        
+    """
+    ACP class template
+    """
+
+    def __init__(
+        self,
+        x_train: Tensor,
+        y_train: Tensor,
+        model: NeuralNetworkTemplate,
+        seed: int = 42,
+        verbose: bool = False,
+        batches: int = 1,
+        damp: float = 0.001,
+    ):
+        """
+        ACP outputs a prediction set that contains the true label with at least a probability
+        specified by the practicioner.
+
+        When instantiated, the ACP class runs the training step, where it computes the gradient
+        and nonconformity score at each training sample and the Hessian inverse.
+
+        Args:
+            x_train (Tensor): input features.
+            y_train (Tensor): input labels.
+            model (nn.Module): PyTorch model wrapped by ACP, with .fit() and .predict() methods.
+            seed (int, optional): random seed. Defaults to 42.
+            verbose (bool, optional): verbose. Defaults to False.
+            batches (int, optional): number of batches to compute the Hessian. Defaults to 1.
+            damp (float, optional): damping parameter for the Hessian. Defaults to 0.001.
+        """
         self.seed = seed
-        self.verbose = verbose   
+        self.verbose = verbose
         self.model = model
         self.batches = batches
-        self.N = len(Xtrain)
-        self.labels = np.unique(Ytrain).tolist()
-        
+        self.n_samples = len(x_train)
+        self.labels = np.unique(y_train).tolist()
+
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
         torch.cuda.manual_seed(self.seed)
         random.seed(self.seed)
-        
-        # Train model on (Xtrain, Ytrain).
+
+        # Train model on (x_train, y_train).
         self.model = self.model.to(device)
         if self.verbose:
-            print("Training model on {} samples".format(self.N))
-        self.model.fit(Xtrain, Ytrain, seed = self.seed)
-        torch.cuda.empty_cache() 
-        
+            print(f"Training model on {self.n_samples} samples")
+        self.model.fit(x_train, y_train, seed=self.seed)
+        torch.cuda.empty_cache()
+
         # Estimate influence.
         if self.verbose:
             print("Computing gradients and Hessian inverse")
         self.gradients = []
-        for x, y in zip(Xtrain, Ytrain):
-            self.gradients.append(self.compute_gradient(x, y).cpu().detach())
+        for x, y in zip(x_train, y_train):
+            self.gradients.append(self.compute_gradient(x, y)[0].cpu().detach())
             torch.cuda.empty_cache()
-        self.gradients.append(None) #for the test point
-        
-        H = torch.zeros(self.count_params(), self.count_params()).to(device)
-        Xtrain_splitted = np.array_split(Xtrain, self.batches)
-        Ytrain_splitted = np.array_split(Ytrain, self.batches)
-        for batch_X, batch_Y in zip(Xtrain_splitted, Ytrain_splitted):
-            H += self.compute_hessian(batch_X, batch_Y)
-        H = H/self.batches
-        H += torch.diag(Tensor([damp]*len(H))).to(device)
+        self.gradients.append(None)  # for the test point
+
+        hessian = torch.zeros(self.count_params(), self.count_params()).to(device)
+        x_train_splitted = np.array_split(x_train, self.batches)
+        y_train_splitted = np.array_split(y_train, self.batches)
+        for batch_x, batch_y in zip(x_train_splitted, y_train_splitted):
+            hessian += self.compute_hessian(batch_x, batch_y)
+        hessian = hessian / self.batches
+        hessian += torch.diag(Tensor([damp] * len(hessian))).to(device)
         torch.cuda.empty_cache()
-        self.H_inv = torch.inverse(H)
-        del H 
-        
+        self.hessian_inv = torch.inverse(hessian)
+        del hessian
+
         # Compute preliminary scores.
         if verbose:
-            print("Computing scores for {} samples".format(self.N))
-        self.losses = [np.float64(self.compute_loss(x, y).cpu().detach()) for x, y in zip(Xtrain, Ytrain)]
-        self.losses.append(None) #for the test point
-        
+            print(f"Computing scores for {self.n_samples} samples")
+        self.losses = [
+            np.float64(self.compute_loss(x, y).cpu().detach()) for x, y in zip(x_train, y_train)
+        ]
+        self.losses.append(None)  # type: ignore # for the test point
+
         if self.verbose:
             print("Conformal predictor is ready!")
-    
-    def loss(self, targets, outputs):
+
+    def loss(self, targets: Tensor, outputs: Tensor) -> Tensor:
+        """
+        Method to compute the cross-entropy loss between predictions and targets.
+
+        Args:
+            targets (Tensor): groun truth.
+            outputs (Tensor): predictions.
+
+        Returns:
+            Tensor: loss
+        """
+
         targets = targets.long()
-        loss_func = CrossEntropyLoss(reduction = "mean")
-        loss = loss_func(outputs, targets)      
+        loss_func = CrossEntropyLoss(reduction="mean")
+        loss = loss_func(outputs, targets)
         return loss
-    
-    def compute_loss(self, x, y, gpu = 0):
+
+    def compute_loss(self, x: Tensor, y: Tensor, gpu: int = 0) -> Tensor:
+        """
+        Method to compute the model loss at an input tensor.
+
+        Args:
+            x (Tensor): input features.
+            y (Tensor): input labels.
+            gpu (int, optional): use cpu or gpu. Defaults to 0.
+
+        Returns:
+            Tensor: loss at inputs
+        """
+
         self.model.zero_grad()
         x = check_tensor(x).unsqueeze(0)
         targets = check_tensor(y).unsqueeze(0)
@@ -72,8 +137,20 @@ class ACP:
             x, targets = x.to(device), targets.to(device)
         outputs = self.model(x)
         return self.loss(targets, outputs)
-    
-    def compute_gradient(self, x, targets, gpu = 0, flatten = True):
+
+    def compute_gradient(self, x: Tensor, targets: Tensor, gpu: int = 0, flatten: bool = True):
+        """
+        Method to compute the gradient of the loss wrt the model parameters.
+
+        Args:
+            x (Tensor): input features.
+            targets (Tensor): targets/ground truth.
+            gpu (int, optional): use cpu or gpu. Defaults to 0.
+            flatten (bool, optional): flatten output vector. Defaults to True.
+
+        Returns:
+            Sequence[Tensor]: gradients of the loss at input vector wrt the model parameters.
+        """
         self.model.zero_grad()
         x = check_tensor(x).unsqueeze(0)
         targets = check_tensor(targets).unsqueeze(0)
@@ -81,181 +158,238 @@ class ACP:
             x, targets = x.to(device), targets.to(device)
         outputs = self.model(x)
         loss = self.loss(targets, outputs)
-        params = [ p for p in self.model.parameters() if p.requires_grad ]
+        params = [p for p in self.model.parameters() if p.requires_grad]
         gradient = list(grad(loss, params, create_graph=True))
         if flatten:
-            return flatten_gradient(gradient)           
+            return flatten_gradient(gradient)
         return gradient
-    
-    def compute_hessian(self, Xtrain, Ytrain, gpu = 0):
-        
-        def gradient(outputs, inputs, grad_outputs=None, retain_graph=None, create_graph=False):
 
-            if torch.is_tensor(inputs):
-                inputs = [inputs]
-            else:
-                inputs = list(inputs)
-            grads = torch.autograd.grad(outputs, inputs, grad_outputs, 
-                         allow_unused=True,retain_graph=retain_graph,
-                         create_graph=create_graph)
+    def compute_hessian(self, x_train, y_train, gpu: int = 0) -> Tensor:
+        """_
+        Method to compute the Hessian of the loss wrt the model parameters.
+        Args:
+            x_train (_type_): input features.
+            y_train (_type_): targets/ground truth
+            gpu (int, optional): use cpu or gpu. Defaults to 0.
+
+        Returns:
+            Tensor: Hessian of the loss at input vector wrt the model parameters.
+        """
+
+        def gradient(
+            outputs: Tensor,
+            inputs: Tensor,
+            grad_outputs: Optional[Sequence[Tensor]] = None,
+            retain_graph: Optional[bool] = None,
+            create_graph: bool = False,
+        ) -> Tensor:
+            inputs_list = [inputs]
+
+            grads = torch.autograd.grad(
+                outputs,
+                inputs_list,
+                grad_outputs,
+                allow_unused=True,
+                retain_graph=retain_graph,
+                create_graph=create_graph,
+            )
             grads = [x if x is not None else torch.zeros_like(y) for x, y in zip(grads, inputs)]
             return torch.cat([x.contiguous().view(-1) for x in grads])
-        
-        Xtrain = check_tensor(Xtrain)
-        Ytrain = check_tensor(Ytrain)
-        
+
+        x_train = check_tensor(x_train)
+        y_train = check_tensor(y_train)
+
         if gpu >= 0:
-            Xtrain, Ytrain = Xtrain.to(device), Ytrain.to(device)
-            
-        outputs = self.model(Xtrain)        
-        loss = self.loss(Ytrain, outputs)        
+            x_train, y_train = x_train.to(device), y_train.to(device)
+
+        outputs = self.model(x_train)
+        loss = self.loss(y_train, outputs)
         inputs = self.model.parameters()
         hessian = torch.zeros(self.count_params(), self.count_params())
 
-        if torch.is_tensor(inputs):
-            inputs = [inputs]
-        else:
-            inputs = list(inputs)
-            
         row_index = 0
 
         for i, inp in enumerate(inputs):
-
-            [grad] = torch.autograd.grad(loss, inp, create_graph=True, allow_unused=False)
-            grad = torch.zeros_like(inp) if grad is None else grad
-            grad = grad.contiguous().view(-1)
+            [gradd] = torch.autograd.grad(loss, inp, create_graph=True, allow_unused=False)
+            gradd = torch.zeros_like(inp) if gradd is None else gradd
+            gradd = gradd.contiguous().view(-1)
 
             for j in range(inp.numel()):
-                if grad[j].requires_grad:
-                    row = gradient(grad[j], inputs[i:], retain_graph=True, create_graph=False)[j:]
+                if gradd[j].requires_grad:
+                    row = gradient(gradd[j], inputs[i:], retain_graph=True, create_graph=False)[j:]  # type: ignore
                 else:
-                    row = grad[j].new_zeros(sum(x.numel() for x in inputs[i:]) - j)
+                    row = gradd[j].new_zeros(sum(x.numel() for x in inputs[i:]) - j)  # type: ignore
 
                 hessian[row_index, row_index:].add_(row.type_as(hessian))  # row_index's row
                 if row_index + 1 < self.count_params():
-                    hessian[row_index + 1:, row_index].add_(row[1:].type_as(hessian))  # row_index's column
+                    hessian[row_index + 1 :, row_index].add_(
+                        row[1:].type_as(hessian)
+                    )  # row_index's column
                 del row
                 row_index += 1
-            del grad
+            del gradd
         return Tensor(hessian).to(device)
-    
+
     def count_params(self):
+        """Count model parameters."""
         return sum(p.numel() for p in self.model.parameters())
-    
-    def predict(self, Xtest):
-        "Predict method for CP function"
-        return
-        
+
+
 class ACP_D(ACP):
-            
-    def __init__(self, Xtrain, Ytrain, model, seed = 42, verbose = False, batches = 1, damp = 0.001):
-        super().__init__(Xtrain = Xtrain, Ytrain = Ytrain, model = model, seed = seed, verbose = verbose, batches = batches, damp = damp)
-        
-    def predict(self, Xtest, epsilon, out_file = None):
-          
+    """Deleted ACP scheme (ACP (D) in the paper)."""
+
+    def __init__(
+        self,
+        x_train: Tensor,
+        y_train: Tensor,
+        model: NeuralNetworkTemplate,
+        seed: int = 42,
+        verbose: bool = False,
+        batches: int = 1,
+        damp: float = 0.001,
+    ):
+        super().__init__(
+            x_train=x_train,
+            y_train=y_train,
+            model=model,
+            seed=seed,
+            verbose=verbose,
+            batches=batches,
+            damp=damp,
+        )
+
+    def predict(self, x_test: Tensor, epsilon: int, out_file: Optional[str] = None) -> Dict:
+        """
+        Prediction step. ACP computes the gradient at the test point and uses influence
+        functions to build a prediction set that contains the true label with a specified
+        probability 1 - epsilon.
+
+        Args:
+            x_test (Tensor): input features.
+            epsilon (int): significance level.
+            out_file (Optional[str], optional): path to save results. Defaults to None.
+
+        Returns:
+            Tensor: prediction sets.
+        """
         pred_sets = {}
-        
+
         if self.verbose:
-                print("Computing p-values for {} samples".format(len(Xtest)))
-                      
-        for k, xtest in enumerate(tqdm(Xtest)):
-                
-            pvals_xtest = {}
-            pred_set_xtest = []
-                      
+            print(f"Computing p-values for {len(x_test)} samples")
+
+        for k, x_test in enumerate(tqdm(x_test)):
+            pvals_x_test = {}
+            pred_set_x_test = []
+
             for yhat in self.labels:
-                
-                alphas = np.zeros(self.N + 1)
+                alphas = np.zeros(self.n_samples + 1)
                 # Obtain gradient on test point
-                g_test = self.compute_gradient(xtest, yhat, flatten = True)
+                g_test = self.compute_gradient(x_test, yhat, flatten=True)
                 # Obtain loss on test point
-                loss_test = np.float64(self.compute_loss(xtest, yhat).cpu().detach())
-                      
+                loss_test = np.float64(self.compute_loss(x_test, yhat).cpu().detach())
+
                 self.gradients[-1] = g_test
                 self.losses[-1] = loss_test
-                   
+
                 for j, (loss, gradient) in enumerate(zip(self.losses, self.gradients)):
-                    
                     gradient = gradient.to(device)
                     # Compute influence
-                    est = - gradient.T@self.H_inv@(g_test-gradient)/self.N
-                    #Compute nonconf. score
+                    est = -gradient.T @ self.hessian_inv @ (g_test - gradient) / self.n_samples
+                    # Compute nonconf. score
                     alphas[j] = loss + np.array(est.cpu().detach())
                     torch.cuda.empty_cache()
-                
-                #Compute p-value
-                pval = sum(alphas >= alphas[-1])/(self.N+1)
-                pvals_xtest[yhat] = pval
-                
-                #Check if yhat is included in prediction set for the given epsilon
+
+                # Compute p-value
+                pval = sum(alphas >= alphas[-1]) / (self.n_samples + 1)
+                pvals_x_test[yhat] = pval
+
+                # Check if yhat is included in prediction set for the given epsilon
                 if epsilon < pval:
-                      pred_set_xtest.append(yhat)
+                    pred_set_x_test.append(yhat)
 
             if out_file:
-                log_to_file(out_file, {"N": self.N,
-                                       "p-values": pvals_xtest
-                                      })
-        
-            pred_sets[k] = pred_set_xtest
-        
+                log_to_file(out_file, {"N": self.n_samples, "p-values": pvals_x_test})
+
+            pred_sets[k] = pred_set_x_test
+
         return pred_sets
-    
+
+
 class ACP_O(ACP):
-            
-    def __init__(self, Xtrain, Ytrain, model, seed = 42, verbose = False, batches = 1, damp = 0.001):
-        super().__init__(Xtrain = Xtrain, Ytrain = Ytrain, model = model, seed = seed, verbose = verbose, batches = batches, damp = damp)
-        
-    def predict(self, Xtest, epsilon, out_file = None):
-          
+    """Ordinary ACP scheme (ACP (O) in the paper)."""
+
+    def __init__(
+        self,
+        x_train: Tensor,
+        y_train: Tensor,
+        model: NeuralNetworkTemplate,
+        seed: int = 42,
+        verbose: bool = False,
+        batches: int = 1,
+        damp: float = 0.001,
+    ):
+        super().__init__(
+            x_train=x_train,
+            y_train=y_train,
+            model=model,
+            seed=seed,
+            verbose=verbose,
+            batches=batches,
+            damp=damp,
+        )
+
+    def predict(self, x_test: Tensor, epsilon: int, out_file: Optional[str] = None) -> Dict:
+        """
+        Prediction step. ACP computes the gradient at the test point and uses influence
+        functions to build a prediction set that contains the true label with a specified
+        probability 1 - epsilon.
+
+        Args:
+            x_test (Tensor): input features.
+            epsilon (int): significance level.
+            out_file (Optional[str], optional): path to save results. Defaults to None.
+
+        Returns:
+            Tensor: prediction sets.
+        """
         pred_sets = {}
-        
+
         if self.verbose:
-                print("Computing p-values for {} samples".format(len(Xtest)))
-                      
-        for k, xtest in enumerate(tqdm(Xtest)):
-                      
-            pvals_xtest = {}
-            pred_set_xtest = []
-                      
+            print(f"Computing p-values for {len(x_test)} samples")
+
+        for k, x_test in enumerate(tqdm(x_test)):
+            pvals_x_test = {}
+            pred_set_x_test = []
+
             for yhat in self.labels:
-                     
-                alphas = np.zeros(self.N + 1)
+                alphas = np.zeros(self.n_samples + 1)
                 # Obtain gradient on test point
-                g_test = self.compute_gradient(xtest, yhat, flatten = True)
+                g_test = self.compute_gradient(x_test, yhat, flatten=True)
                 # Obtain loss on test point
-                loss_test = np.float64(self.compute_loss(xtest, yhat).cpu().detach())
-                      
+                loss_test = np.float64(self.compute_loss(x_test, yhat).cpu().detach())
+
                 self.gradients[-1] = g_test
                 self.losses[-1] = loss_test
-                   
+
                 for j, (loss, gradient) in enumerate(zip(self.losses, self.gradients)):
-                    
                     gradient = gradient.to(device)
                     # Compute influence
-                    est = - gradient.T@self.H_inv@g_test/self.N
-                    #Compute nonconf. score
+                    est = -gradient.T @ self.hessian_inv @ g_test / self.n_samples
+                    # Compute nonconf. score
                     alphas[j] = loss + np.array(est.cpu().detach())
                     torch.cuda.empty_cache()
-                
-                #Compute p-value
-                pval = sum(alphas >= alphas[-1])/(self.N+1)
-                pvals_xtest[yhat] = pval
-                
-                #Check if yhat is included in prediction set for the given epsilon
+
+                # Compute p-value
+                pval = sum(alphas >= alphas[-1]) / (self.n_samples + 1)
+                pvals_x_test[yhat] = pval
+
+                # Check if yhat is included in prediction set for the given epsilon
                 if epsilon < pval:
-                      pred_set_xtest.append(yhat)
+                    pred_set_x_test.append(yhat)
 
             if out_file:
-                log_to_file(out_file, {"N": self.N,
-                                       "p-values": pvals_xtest
-                                      })
-        
-            pred_sets[k] = pred_set_xtest
-        
+                log_to_file(out_file, {"N": self.n_samples, "p-values": pvals_x_test})
+
+            pred_sets[k] = pred_set_x_test
+
         return pred_sets
-        
-        
-        
-            
-    
-    
