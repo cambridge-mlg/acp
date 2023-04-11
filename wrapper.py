@@ -5,10 +5,10 @@ from typing import Dict, Optional, Sequence
 
 import numpy as np
 import torch
+import tqdm
 from torch import Tensor
 from torch.autograd import grad
 from torch.nn import CrossEntropyLoss
-from tqdm import tqdm
 
 from models import NeuralNetworkTemplate
 from utils import check_tensor, flatten_gradient, log_to_file
@@ -258,7 +258,7 @@ class ACP_D(ACP):
             damp=damp,
         )
 
-    def predict(self, x_test: Tensor, epsilon: int, out_file: Optional[str] = None) -> Dict:
+    def predict(self, x_test: Tensor, epsilon: float, out_file: Optional[str] = None) -> Dict:
         """
         Prediction step. ACP computes the gradient at the test point and uses influence
         functions to build a prediction set that contains the true label with a specified
@@ -277,7 +277,7 @@ class ACP_D(ACP):
         if self.verbose:
             print(f"Computing p-values for {len(x_test)} samples")
 
-        for k, x_test in enumerate(tqdm(x_test)):
+        for k, x_test in enumerate(tqdm.tqdm(x_test)):
             pvals_x_test = {}
             pred_set_x_test = []
 
@@ -338,7 +338,7 @@ class ACP_O(ACP):
             damp=damp,
         )
 
-    def predict(self, x_test: Tensor, epsilon: int, out_file: Optional[str] = None) -> Dict:
+    def predict(self, x_test: Tensor, epsilon: float, out_file: Optional[str] = None) -> Dict:
         """
         Prediction step. ACP computes the gradient at the test point and uses influence
         functions to build a prediction set that contains the true label with a specified
@@ -357,7 +357,7 @@ class ACP_O(ACP):
         if self.verbose:
             print(f"Computing p-values for {len(x_test)} samples")
 
-        for k, x_test in enumerate(tqdm(x_test)):
+        for k, x_test in enumerate(tqdm.tqdm(x_test)):
             pvals_x_test = {}
             pred_set_x_test = []
 
