@@ -12,7 +12,7 @@ This repository contains the Python implementation of [Approximating Full Confor
 
 ## Overview
 
-![alt text](https://github.com/cambridge-mlg/acp/blob/1e0b41a45f7dfe0ad1f02235688a58daa0269c92/ACP.JPG)
+![alt text](resources/ACP.JPG)
 
 Approximate full Conformal Prediction (ACP) outputs a prediction set that contains the true label with at least a probability specified by the practicioner. In large datasets, ACP inherits the statistical power of the highly efficient full Conformal Prediction. The method works as a wrapper for any differentiable ML model.
 
@@ -22,7 +22,7 @@ This repository is organized as follows:
 
  - `methods.py` Python implementation of the ACP algorithms.
  - `others.py` Python implementation of the comparing methods (SCP, APS, RAPS, CV+, JK+).
- - `wrapper.py` Python implementation of ACP as a wrapper for any differentiable ML model. See models.py for examples.
+ - `wrapper.py` Python implementation of ACP as a wrapper for any differentiable PyTorch model with. See models.py for examples.
  - `models.py` Examples of models compatible with wrapper.py (e.g., logistic regression, neural network, convolutional neural network).
  - `experiments.py` Python file to run the experiments from the command line.
  - `third_party/` Additional third-party software for comparison with other methods.
@@ -100,7 +100,7 @@ The file `ACP_Tutorial.ipynb` contains a short tutorial that allows you to explo
 
 For a tutorial on how to use ACP and how to create the plots in the paper, see the following notebook:
 
-* [Constructing prediction sets with ACP](https://github.com/cambridge-mlg/acp/blob/master/ACP_Tutorial.ipynb)
+* [Constructing prediction sets with ACP](ACP_Tutorial.ipynb)
 
 ## Experiments
 
