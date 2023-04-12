@@ -9,7 +9,7 @@
     "python.linting.flake8Enabled": true,
     "python.linting.flake8Path": "/Users/javierabad/miniconda3/envs/acp/bin/flake8",
     "python.linting.flake8Args": [
-        "--max-line-length=120",
+        "--max-line-length=125",
         "--ignore=E203, W503",
     ],
     "python.linting.pylintEnabled": true,
