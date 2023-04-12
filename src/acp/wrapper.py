@@ -74,7 +74,7 @@ class ACP:
             print("Computing gradients and Hessian inverse")
         self.gradients = []
         for x, y in zip(x_train, y_train):
-            self.gradients.append(self.compute_gradient(x, y)[0].cpu().detach())
+            self.gradients.append(self.compute_gradient(x, y).cpu().detach())  # type: ignore
             torch.cuda.empty_cache()
         self.gradients.append(None)  # for the test point
 
@@ -178,16 +178,14 @@ class ACP:
 
         def gradient(
             outputs: Tensor,
-            inputs: Tensor,
+            inputs: Sequence[Tensor],
             grad_outputs: Optional[Sequence[Tensor]] = None,
             retain_graph: Optional[bool] = None,
             create_graph: bool = False,
         ) -> Tensor:
-            inputs_list = [inputs]
-
             grads = torch.autograd.grad(
                 outputs,
-                inputs_list,
+                inputs,
                 grad_outputs,
                 allow_unused=True,
                 retain_graph=retain_graph,
@@ -204,7 +202,7 @@ class ACP:
 
         outputs = self.model(x_train)
         loss = self.loss(y_train, outputs)
-        inputs = self.model.parameters()
+        inputs = list(self.model.parameters())
         hessian = torch.zeros(self.count_params(), self.count_params())
 
         row_index = 0
@@ -216,7 +214,7 @@ class ACP:
 
             for j in range(inp.numel()):
                 if gradd[j].requires_grad:
-                    row = gradient(gradd[j], inputs[i:], retain_graph=True, create_graph=False)[j:]  # type: ignore
+                    row = gradient(gradd[j], iter(inputs[i:]), retain_graph=True, create_graph=False)[j:]  # type: ignore
                 else:
                     row = gradd[j].new_zeros(sum(x.numel() for x in inputs[i:]) - j)  # type: ignore
 

@@ -111,7 +111,7 @@ def check_tensor(X):
         return X
     if isinstance(X, pd.DataFrame):
         X = X.values
-    return torch.Tensor(X).float()
+    return torch.tensor(X, requires_grad=False).float()
 
 
 def make_val_split(X, y, val_split_prop, seed):
