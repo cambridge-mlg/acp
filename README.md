@@ -110,7 +110,7 @@ sets = ACP.predict(Xtest, epsilon = 0.1, out_file = "results/test")
 
 For a tutorial on how to use ACP and how to create the plots in the paper, see the following notebook:
 
-* [Constructing prediction sets with ACP](ACP_Tutorial.ipynb)
+* [Constructing prediction sets with ACP](src/ACP_Tutorial.ipynb)
 
 ## Experiments
 
@@ -175,7 +175,7 @@ J. Abad Martinez, U. Bhatt, A. Weller and G. Cherubin. Approximating Full Confor
  BiBTeX:
 
 ```
-@inproceedings{Abad2022ApproximatingFC,
+@inproceedings{Abad2023ApproximatingFC,
   title={Approximating Full Conformal Prediction at Scale via Influence Functions},
   author={Javier Abad and Umang Bhatt and Adrian Weller and Giovanni Cherubin},
   booktitle={AAAI Conference on Artificial Intelligence},
