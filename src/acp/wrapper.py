@@ -10,8 +10,8 @@ from torch import Tensor
 from torch.autograd import grad
 from torch.nn import CrossEntropyLoss
 
-from models import NeuralNetworkTemplate
-from utils import check_tensor, flatten_gradient, log_to_file
+from acp.models import NeuralNetworkTemplate
+from acp.utils import check_tensor, flatten_gradient, log_to_file
 
 # pylint: disable=no-member
 # no error

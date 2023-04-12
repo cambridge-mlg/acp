@@ -10,9 +10,9 @@ from folktables import ACSDataSource, ACSIncome
 from keras.datasets import cifar10, mnist
 from sklearn.datasets import make_classification
 
-from methods import ACP_D, ACP_O
-from models import AE, ConvolutionalNeuralNetwork, LogisticRegression, NeuralNetwork
-from others import (
+from acp.methods import ACP_D, ACP_O
+from acp.models import AE, ConvolutionalNeuralNetwork, LogisticRegression, NeuralNetwork
+from acp.others import (
     APS,
     RAPS,
     CV_plus,
@@ -21,7 +21,7 @@ from others import (
     ordinary_full_CP,
     split_cp,
 )
-from utils import evaluate_cp_method, normalize_flatten, scalar, train_test_split
+from acp.utils import evaluate_cp_method, normalize_flatten, scalar, train_test_split
 
 # pylint: disable=no-member
 # no error

@@ -8,14 +8,14 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
+from acp.utils import check_tensor, create_set, log_to_file, train_test_split
 from third_party.ARC.arc import methods
 from third_party.RAPS.RAPS_conformal import ConformalModel
-from utils import check_tensor, create_set, log_to_file, train_test_split
 
 # pylint: disable=no-member
 # no error
 
-device = torch.device("mps")
+device = torch.device("cuda")
 
 
 def deleted_full_CP(model, x_train, y_train, xtest, yhat, labels=None, seed=42):

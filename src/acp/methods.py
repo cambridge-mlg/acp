@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from utils import log_to_file
+from acp.utils import log_to_file
 
 # pylint: disable=no-member
 # no error
