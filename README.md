@@ -175,10 +175,13 @@ J. Abad Martinez, U. Bhatt, A. Weller and G. Cherubin. Approximating Full Confor
  BiBTeX:
 
 ```
-@inproceedings{Abad2023ApproximatingFC,
+@inproceedings{martinez2023approximating,
   title={Approximating Full Conformal Prediction at Scale via Influence Functions},
-  author={Javier Abad and Umang Bhatt and Adrian Weller and Giovanni Cherubin},
-  booktitle={AAAI Conference on Artificial Intelligence},
+  author={Martinez, Javier Abad and Bhatt, Umang and Weller, Adrian and Cherubin, Giovanni},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={37},
+  number={6},
+  pages={6631--6639},
   year={2023}
 }
 ```
